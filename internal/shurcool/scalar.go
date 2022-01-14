@@ -1,4 +1,4 @@
-package graphql
+package shurcool
 
 // Note: These custom types are meant to be used in queries for now.
 // But the plan is to switch to using native Go types (string, int, bool, time.Time, etc.).

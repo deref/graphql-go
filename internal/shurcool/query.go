@@ -1,4 +1,4 @@
-package graphql
+package shurcool
 
 import (
 	"bytes"
@@ -6,24 +6,26 @@ import (
 	"io"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/deref/graphql-go/internal/shurcool/ident"
+	"github.com/deref/graphql-go/internal/shurcool/internal/jsonutil"
 )
 
-func constructQuery(v interface{}, variables map[string]interface{}) string {
-	query := query(v)
-	if len(variables) > 0 {
-		return "query(" + queryArguments(variables) + ")" + query
-	}
-	return query
-}
+var UnmarshalData = jsonutil.UnmarshalGraphQL
 
-func constructMutation(v interface{}, variables map[string]interface{}) string {
-	query := query(v)
-	if len(variables) > 0 {
-		return "mutation(" + queryArguments(variables) + ")" + query
+func ConstructOperation(opType string, name string, v interface{}, variables map[string]interface{}) string {
+	var sb strings.Builder
+	if opType != "query" || name != "" || len(variables) > 0 {
+		sb.WriteString(opType)
 	}
-	return "mutation" + query
+	if len(variables) > 0 {
+		sb.WriteRune('(')
+		sb.WriteString(queryArguments(variables))
+		sb.WriteRune(')')
+	}
+	sb.WriteString(query(v))
+	return sb.String()
 }
 
 // queryArguments constructs a minified arguments string for variables.

@@ -1,4 +1,4 @@
-package graphql_test
+package shurcool_test
 
 import (
 	"testing"

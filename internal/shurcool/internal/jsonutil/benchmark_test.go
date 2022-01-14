@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/deref/graphql-go/internal/shurcool/graphql"
+	graphql "github.com/deref/graphql-go/internal/shurcool"
 	"github.com/deref/graphql-go/internal/shurcool/internal/jsonutil"
 )
 

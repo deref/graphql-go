@@ -1,10 +1,18 @@
-package graphql
+package shurcool
 
 import (
 	"net/url"
 	"testing"
 	"time"
 )
+
+func constructQuery(v interface{}, variables map[string]interface{}) string {
+	return ConstructOperation("query", "", v, variables)
+}
+
+func constructMutation(v interface{}, variables map[string]interface{}) string {
+	return ConstructOperation("mutation", "", v, variables)
+}
 
 func TestConstructQuery(t *testing.T) {
 	tests := []struct {
