@@ -7,7 +7,7 @@ import (
 	"github.com/deref/graphql-go/internal/shurcool"
 )
 
-func MustMarshalOperation(op gql.Operation) string {
+func MustMarshalOperation(op *gql.Operation) string {
 	var typ string
 	switch op.Type {
 	case gql.Query:
