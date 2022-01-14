@@ -7,6 +7,11 @@ causing some unnecessary complexity downstream. This fork simply strips the
 HTTP support, and exposes the underlying marshalling/encoding machinery
 directly.
 
+Docs below are now stale, since the `Client` struct no longer exists. However,
+the the reflective encoding stuff is unchanged. See the
+[github.com/deref/graphql-go/encoding](https://github.com/deref/graphql-go/tree/main/encoding)
+package for the public interface.
+
 ### Simple Query
 
 To make a GraphQL query, you need to define a corresponding Go type.
