@@ -1,4 +1,4 @@
-package graphql
+package encoding
 
 import (
 	"encoding/json"
