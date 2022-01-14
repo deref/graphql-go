@@ -1,47 +1,11 @@
-graphql
-=======
+# FORK
 
-[![Build Status](https://travis-ci.org/shurcooL/graphql.svg?branch=master)](https://travis-ci.org/shurcooL/graphql) [![GoDoc](https://godoc.org/github.com/shurcooL/graphql?status.svg)](https://godoc.org/github.com/shurcooL/graphql)
+NOTE: This internal package is a fork of https://github.com/shurcooL/graphql
 
-Package `graphql` provides a GraphQL client implementation.
-
-For more information, see package [`github.com/shurcooL/githubv4`](https://github.com/shurcooL/githubv4), which is a specialized version targeting GitHub GraphQL API v4. That package is driving the feature development.
-
-Installation
-------------
-
-`graphql` requires Go version 1.8 or later.
-
-```bash
-go get -u github.com/shurcooL/graphql
-```
-
-Usage
------
-
-Construct a GraphQL client, specifying the GraphQL server URL. Then, you can use it to make GraphQL queries and mutations.
-
-```Go
-client := graphql.NewClient("https://example.com/graphql", nil)
-// Use client...
-```
-
-### Authentication
-
-Some GraphQL servers may require authentication. The `graphql` package does not directly handle authentication. Instead, when creating a new client, you're expected to pass an `http.Client` that performs authentication. The easiest and recommended way to do this is to use the [`golang.org/x/oauth2`](https://golang.org/x/oauth2) package. You'll need an OAuth token with the right scopes. Then:
-
-```Go
-import "golang.org/x/oauth2"
-
-func main() {
-	src := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GRAPHQL_TOKEN")},
-	)
-	httpClient := oauth2.NewClient(context.Background(), src)
-
-	client := graphql.NewClient("https://example.com/graphql", httpClient)
-	// Use client...
-```
+Shurcool's excellent, MIT-licensed work was needlessly tied to an HTTP client,
+causing some unnecessary complexity downstream. This fork simply strips the
+HTTP support, and exposes the underlying marshalling/encoding machinery
+directly.
 
 ### Simple Query
 
@@ -276,16 +240,14 @@ fmt.Printf("Created a %v star review: %v\n", m.CreateReview.Stars, m.CreateRevie
 // Created a 5 star review: This is a great movie!
 ```
 
-Directories
------------
+## Directories
 
 | Path                                                                                   | Synopsis                                                                                                        |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | [example/graphqldev](https://godoc.org/github.com/shurcooL/graphql/example/graphqldev) | graphqldev is a test program currently being used for developing graphql package.                               |
 | [ident](https://godoc.org/github.com/shurcooL/graphql/ident)                           | Package ident provides functions for parsing and converting identifier names between various naming convention. |
 | [internal/jsonutil](https://godoc.org/github.com/shurcooL/graphql/internal/jsonutil)   | Package jsonutil provides a function for decoding JSON into a GraphQL query data structure.                     |
 
-License
--------
+## License
 
--	[MIT License](LICENSE)
+- [MIT License](LICENSE)
