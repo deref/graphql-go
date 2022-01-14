@@ -7,10 +7,17 @@ causing some unnecessary complexity downstream. This fork simply strips the
 HTTP support, and exposes the underlying marshalling/encoding machinery
 directly.
 
-Docs below are now stale, since the `Client` struct no longer exists. However,
-the the reflective encoding stuff is unchanged. See the
+Docs below have been revised, since the `Client` struct no longer exists. However,
+the the reflective encoding stuff is _mostly_ unchanged. See the
 [github.com/deref/graphql-go/encoding](https://github.com/deref/graphql-go/tree/main/encoding)
 package for the public interface.
+
+One critical change is that wrapper types are no longer required for
+representing GraphQL's `String`, `Boolean`, `Float`, and `Int` types. You can
+use corresponding Go types directly, provided they can represent the same range
+of values. That is, any integer type that fits in a 64-bit float can be used.
+The machine-specific `int` type may be truncated. Similar goes for floating
+point values.
 
 ### Simple Query
 
@@ -31,7 +38,7 @@ You can define this variable:
 ```Go
 var query struct {
 	Me struct {
-		Name graphql.String
+		Name string
 	}
 }
 ```
@@ -68,8 +75,8 @@ You can define this variable:
 ```Go
 var q struct {
 	Human struct {
-		Name   graphql.String
-		Height graphql.Float `graphql:"height(unit: METER)"`
+		Name   string
+		Height float64 `graphql:"height(unit: METER)"`
 	} `graphql:"human(id: \"1000\")"`
 }
 ```
@@ -94,8 +101,8 @@ However, that'll only work if the arguments are constant and known in advance. O
 ```Go
 var q struct {
 	Human struct {
-		Name   graphql.String
-		Height graphql.Float `graphql:"height(unit: $unit)"`
+		Name   string
+		Height float64 `graphql:"height(unit: $unit)"`
 	} `graphql:"human(id: $id)"`
 }
 ```
@@ -143,12 +150,12 @@ You can define this variable:
 ```Go
 var q struct {
 	Hero struct {
-		Name  graphql.String
+		Name  string
 		Droid struct {
-			PrimaryFunction graphql.String
+			PrimaryFunction string
 		} `graphql:"... on Droid"`
 		Human struct {
-			Height graphql.Float
+			Height float64
 		} `graphql:"... on Human"`
 	} `graphql:"hero(episode: \"JEDI\")"`
 }
@@ -159,16 +166,16 @@ Alternatively, you can define the struct types corresponding to inline fragments
 ```Go
 type (
 	DroidFragment struct {
-		PrimaryFunction graphql.String
+		PrimaryFunction string
 	}
 	HumanFragment struct {
-		Height graphql.Float
+		Height float64
 	}
 )
 
 var q struct {
 	Hero struct {
-		Name          graphql.String
+		Name          string
 		DroidFragment `graphql:"... on Droid"`
 		HumanFragment `graphql:"... on Human"`
 	} `graphql:"hero(episode: \"JEDI\")"`
@@ -219,15 +226,15 @@ You can define:
 ```Go
 var m struct {
 	CreateReview struct {
-		Stars      graphql.Int
-		Commentary graphql.String
+		Stars      int
+		Commentary string
 	} `graphql:"createReview(episode: $ep, review: $review)"`
 }
 variables := map[string]interface{}{
 	"ep": starwars.Episode("JEDI"),
 	"review": starwars.ReviewInput{
-		Stars:      graphql.Int(5),
-		Commentary: graphql.String("This is a great movie!"),
+		Stars:      5,
+		Commentary: "This is a great movie!",
 	},
 }
 ```

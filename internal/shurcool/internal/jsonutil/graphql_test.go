@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	graphql "github.com/deref/graphql-go/internal/shurcool"
 	"github.com/deref/graphql-go/internal/shurcool/internal/jsonutil"
 )
 
@@ -20,8 +19,8 @@ func TestUnmarshalGraphQL(t *testing.T) {
 	*/
 	type query struct {
 		Me struct {
-			Name   graphql.String
-			Height graphql.Float
+			Name   string
+			Height float64
 		}
 	}
 	var got query
@@ -44,7 +43,7 @@ func TestUnmarshalGraphQL(t *testing.T) {
 
 func TestUnmarshalGraphQL_graphqlTag(t *testing.T) {
 	type query struct {
-		Foo graphql.String `graphql:"baz"`
+		Foo string `graphql:"baz"`
 	}
 	var got query
 	err := jsonutil.UnmarshalGraphQL([]byte(`{
@@ -63,7 +62,7 @@ func TestUnmarshalGraphQL_graphqlTag(t *testing.T) {
 
 func TestUnmarshalGraphQL_jsonTag(t *testing.T) {
 	type query struct {
-		Foo graphql.String `json:"baz"`
+		Foo string `json:"baz"`
 	}
 	var got query
 	err := jsonutil.UnmarshalGraphQL([]byte(`{
@@ -82,9 +81,9 @@ func TestUnmarshalGraphQL_jsonTag(t *testing.T) {
 
 func TestUnmarshalGraphQL_array(t *testing.T) {
 	type query struct {
-		Foo []graphql.String
-		Bar []graphql.String
-		Baz []graphql.String
+		Foo []string
+		Bar []string
+		Baz []string
 	}
 	var got query
 	err := jsonutil.UnmarshalGraphQL([]byte(`{
@@ -99,9 +98,9 @@ func TestUnmarshalGraphQL_array(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := query{
-		Foo: []graphql.String{"bar", "baz"},
-		Bar: []graphql.String{},
-		Baz: []graphql.String(nil),
+		Foo: []string{"bar", "baz"},
+		Bar: []string{},
+		Baz: nil,
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Error("not equal")
@@ -125,7 +124,7 @@ func TestUnmarshalGraphQL_arrayReset(t *testing.T) {
 func TestUnmarshalGraphQL_objectArray(t *testing.T) {
 	type query struct {
 		Foo []struct {
-			Name graphql.String
+			Name string
 		}
 	}
 	var got query
@@ -139,7 +138,7 @@ func TestUnmarshalGraphQL_objectArray(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := query{
-		Foo: []struct{ Name graphql.String }{
+		Foo: []struct{ Name string }{
 			{"bar"},
 			{"baz"},
 		},
@@ -151,11 +150,11 @@ func TestUnmarshalGraphQL_objectArray(t *testing.T) {
 
 func TestUnmarshalGraphQL_pointer(t *testing.T) {
 	type query struct {
-		Foo *graphql.String
-		Bar *graphql.String
+		Foo *string
+		Bar *string
 	}
 	var got query
-	got.Bar = new(graphql.String) // Test that got.Bar gets set to nil.
+	got.Bar = new(string) // Test that got.Bar gets set to nil.
 	err := jsonutil.UnmarshalGraphQL([]byte(`{
 		"foo": "foo",
 		"bar": null
@@ -163,8 +162,9 @@ func TestUnmarshalGraphQL_pointer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	foo := "foo"
 	want := query{
-		Foo: graphql.NewString("foo"),
+		Foo: &foo,
 		Bar: nil,
 	}
 	if !reflect.DeepEqual(got, want) {
@@ -175,7 +175,7 @@ func TestUnmarshalGraphQL_pointer(t *testing.T) {
 func TestUnmarshalGraphQL_objectPointerArray(t *testing.T) {
 	type query struct {
 		Foo []*struct {
-			Name graphql.String
+			Name string
 		}
 	}
 	var got query
@@ -190,7 +190,7 @@ func TestUnmarshalGraphQL_objectPointerArray(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := query{
-		Foo: []*struct{ Name graphql.String }{
+		Foo: []*struct{ Name string }{
 			{"bar"},
 			nil,
 			{"baz"},
@@ -243,7 +243,7 @@ func TestUnmarshalGraphQL_pointerWithInlineFragment(t *testing.T) {
 
 func TestUnmarshalGraphQL_unexportedField(t *testing.T) {
 	type query struct {
-		foo graphql.String
+		foo string
 	}
 	err := jsonutil.UnmarshalGraphQL([]byte(`{"foo": "bar"}`), new(query))
 	if err == nil {
@@ -256,7 +256,7 @@ func TestUnmarshalGraphQL_unexportedField(t *testing.T) {
 
 func TestUnmarshalGraphQL_multipleValues(t *testing.T) {
 	type query struct {
-		Foo graphql.String
+		Foo string
 	}
 	err := jsonutil.UnmarshalGraphQL([]byte(`{"foo": "bar"}{"foo": "baz"}`), new(query))
 	if err == nil {
@@ -281,7 +281,7 @@ func TestUnmarshalGraphQL_union(t *testing.T) {
 			}
 		}
 	*/
-	type actor struct{ Login graphql.String }
+	type actor struct{ Login string }
 	type closedEvent struct {
 		Actor     actor
 		CreatedAt time.Time

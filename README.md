@@ -9,3 +9,5 @@ _NOTE: Everything in this repository is presently unstable._
 Forked from [https://github.com/shurcooL/graphql](https://github.com/shurcooL/graphql),
 the `github.com/deref/graphql-go/encoding` package provides transport-agnostic
 encoding and decoding of GraphQL operations and response data.
+
+See [./internal/shurcool/README.md](./internal/shurcool/README.md) for details.

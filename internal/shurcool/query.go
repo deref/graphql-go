@@ -72,8 +72,15 @@ func writeArgumentType(w io.Writer, t reflect.Type, value bool) {
 	default:
 		// Named type. E.g., "Int".
 		name := t.Name()
-		if name == "string" { // HACK: Workaround for https://github.com/shurcooL/githubv4/issues/12.
-			name = "ID"
+		switch name {
+		case "string":
+			name = "String"
+		case "int", "uint8", "int8", "uint16", "int16", "uint32", "int32":
+			name = "Int"
+		case "float32", "float64":
+			name = "Float"
+		case "bool":
+			name = "Boolean"
 		}
 		io.WriteString(w, name)
 	}

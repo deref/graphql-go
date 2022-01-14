@@ -23,15 +23,15 @@ func TestConstructQuery(t *testing.T) {
 		{
 			inV: struct {
 				Viewer struct {
-					Login      String
+					Login      string
 					CreatedAt  DateTime
 					ID         ID
-					DatabaseID Int
+					DatabaseID int
 				}
 				RateLimit struct {
-					Cost      Int
-					Limit     Int
-					Remaining Int
+					Cost      int
+					Limit     int
+					Remaining int
 					ResetAt   DateTime
 				}
 			}{},
@@ -40,22 +40,22 @@ func TestConstructQuery(t *testing.T) {
 		{
 			inV: struct {
 				Repository struct {
-					DatabaseID Int
+					DatabaseID int
 					URL        URI
 
 					Issue struct {
 						Comments struct {
 							Edges []struct {
 								Node struct {
-									Body   String
+									Body   string
 									Author struct {
-										Login String
+										Login string
 									}
 									Editor struct {
-										Login String
+										Login string
 									}
 								}
-								Cursor String
+								Cursor string
 							}
 						} `graphql:"comments(first:1after:\"Y3Vyc29yOjE5NTE4NDI1Ng==\")"`
 					} `graphql:"issue(number:1)"`
@@ -66,29 +66,29 @@ func TestConstructQuery(t *testing.T) {
 		{
 			inV: func() interface{} {
 				type actor struct {
-					Login     String
+					Login     string
 					AvatarURL URI
 					URL       URI
 				}
 
 				return struct {
 					Repository struct {
-						DatabaseID Int
+						DatabaseID int
 						URL        URI
 
 						Issue struct {
 							Comments struct {
 								Edges []struct {
 									Node struct {
-										DatabaseID      Int
+										DatabaseID      int
 										Author          actor
 										PublishedAt     DateTime
 										LastEditedAt    *DateTime
 										Editor          *actor
-										Body            String
-										ViewerCanUpdate Boolean
+										Body            string
+										ViewerCanUpdate bool
 									}
-									Cursor String
+									Cursor string
 								}
 							} `graphql:"comments(first:1)"`
 						} `graphql:"issue(number:1)"`
@@ -100,7 +100,7 @@ func TestConstructQuery(t *testing.T) {
 		{
 			inV: func() interface{} {
 				type actor struct {
-					Login     String
+					Login     string
 					AvatarURL URI `graphql:"avatarUrl(size:72)"`
 					URL       URI
 				}
@@ -112,36 +112,36 @@ func TestConstructQuery(t *testing.T) {
 							PublishedAt    DateTime
 							LastEditedAt   *DateTime
 							Editor         *actor
-							Body           String
+							Body           string
 							ReactionGroups []struct {
 								Content ReactionContent
 								Users   struct {
-									TotalCount Int
+									TotalCount int
 								}
-								ViewerHasReacted Boolean
+								ViewerHasReacted bool
 							}
-							ViewerCanUpdate Boolean
+							ViewerCanUpdate bool
 
 							Comments struct {
 								Nodes []struct {
-									DatabaseID     Int
+									DatabaseID     int
 									Author         actor
 									PublishedAt    DateTime
 									LastEditedAt   *DateTime
 									Editor         *actor
-									Body           String
+									Body           string
 									ReactionGroups []struct {
 										Content ReactionContent
 										Users   struct {
-											TotalCount Int
+											TotalCount int
 										}
-										ViewerHasReacted Boolean
+										ViewerHasReacted bool
 									}
-									ViewerCanUpdate Boolean
+									ViewerCanUpdate bool
 								}
 								PageInfo struct {
-									EndCursor   String
-									HasNextPage Boolean
+									EndCursor   string
+									HasNextPage bool
 								}
 							} `graphql:"comments(first:1)"`
 						} `graphql:"issue(number:1)"`
@@ -154,7 +154,7 @@ func TestConstructQuery(t *testing.T) {
 			inV: struct {
 				Repository struct {
 					Issue struct {
-						Body String
+						Body string
 					} `graphql:"issue(number: 1)"`
 				} `graphql:"repository(owner:\"shurcooL-test\"name:\"test-repo\")"`
 			}{},
@@ -164,14 +164,14 @@ func TestConstructQuery(t *testing.T) {
 			inV: struct {
 				Repository struct {
 					Issue struct {
-						Body String
+						Body string
 					} `graphql:"issue(number: $issueNumber)"`
 				} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
 			}{},
 			inVariables: map[string]interface{}{
-				"repositoryOwner": String("shurcooL-test"),
-				"repositoryName":  String("test-repo"),
-				"issueNumber":     Int(1),
+				"repositoryOwner": "shurcooL-test",
+				"repositoryName":  "test-repo",
+				"issueNumber":     1,
 			},
 			want: `query($issueNumber:Int!$repositoryName:String!$repositoryOwner:String!){repository(owner: $repositoryOwner, name: $repositoryName){issue(number: $issueNumber){body}}}`,
 		},
@@ -182,7 +182,7 @@ func TestConstructQuery(t *testing.T) {
 						ReactionGroups []struct {
 							Users struct {
 								Nodes []struct {
-									Login String
+									Login string
 								}
 							} `graphql:"users(first:10)"`
 						}
@@ -190,9 +190,9 @@ func TestConstructQuery(t *testing.T) {
 				} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
 			}{},
 			inVariables: map[string]interface{}{
-				"repositoryOwner": String("shurcooL-test"),
-				"repositoryName":  String("test-repo"),
-				"issueNumber":     Int(1),
+				"repositoryOwner": "shurcooL-test",
+				"repositoryName":  "test-repo",
+				"issueNumber":     1,
 			},
 			want: `query($issueNumber:Int!$repositoryName:String!$repositoryOwner:String!){repository(owner: $repositoryOwner, name: $repositoryName){issue(number: $issueNumber){reactionGroups{users(first:10){nodes{login}}}}}}`,
 		},
@@ -200,7 +200,7 @@ func TestConstructQuery(t *testing.T) {
 		{
 			inV: func() interface{} {
 				type actor struct {
-					Login     String
+					Login     string
 					AvatarURL URI
 					URL       URI
 				}
@@ -209,16 +209,16 @@ func TestConstructQuery(t *testing.T) {
 					CreatedAt DateTime
 				}
 				type IssueComment struct {
-					Body String
+					Body string
 				}
 				return struct {
 					event                                         // Should be inlined.
 					IssueComment  `graphql:"... on IssueComment"` // Should not be, because of graphql tag.
-					CurrentTitle  String
-					PreviousTitle String
+					CurrentTitle  string
+					PreviousTitle string
 					Label         struct {
-						Name  String
-						Color String
+						Name  string
+						Color string
 					}
 				}{}
 			}(),
@@ -256,7 +256,7 @@ func TestConstructMutation(t *testing.T) {
 					Subject struct {
 						ReactionGroups []struct {
 							Users struct {
-								TotalCount Int
+								TotalCount int
 							}
 						}
 					}
@@ -280,12 +280,13 @@ func TestConstructMutation(t *testing.T) {
 }
 
 func TestQueryArguments(t *testing.T) {
+	yes := true
 	tests := []struct {
 		in   map[string]interface{}
 		want string
 	}{
 		{
-			in:   map[string]interface{}{"a": Int(123), "b": NewBoolean(true)},
+			in:   map[string]interface{}{"a": 123, "b": &yes},
 			want: "$a:Int!$b:Boolean",
 		},
 		{
@@ -332,6 +333,8 @@ func TestQueryArguments(t *testing.T) {
 
 // Custom GraphQL types for testing.
 type (
+	ID string
+
 	// DateTime is an ISO-8601 encoded UTC date.
 	DateTime struct{ time.Time }
 
@@ -371,5 +374,5 @@ type AddReactionInput struct {
 	Content ReactionContent `json:"content"`
 
 	// A unique identifier for the client performing the mutation. (Optional.)
-	ClientMutationID *String `json:"clientMutationId,omitempty"`
+	ClientMutationID *string `json:"clientMutationId,omitempty"`
 }
