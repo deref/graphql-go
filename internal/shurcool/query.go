@@ -3,6 +3,7 @@ package shurcool
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"reflect"
 	"sort"
@@ -73,6 +74,8 @@ func writeArgumentType(w io.Writer, t reflect.Type, value bool) {
 		// Named type. E.g., "Int".
 		name := t.Name()
 		switch name {
+		case "":
+			panic(fmt.Errorf("unnamed type: %s", t))
 		case "string":
 			name = "String"
 		case "int", "uint8", "int8", "uint16", "int16", "uint32", "int32":
