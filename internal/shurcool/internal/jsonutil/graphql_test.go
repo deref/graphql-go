@@ -1,7 +1,10 @@
 package jsonutil_test
 
 import (
+	"encoding/json"
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -326,23 +329,60 @@ func TestUnmarshalGraphQL_union(t *testing.T) {
 	}
 }
 
+type upcaseScalar string
+type fieldScalar struct{ X string }
 type jsonObject map[string]interface{}
+type jsonArray []interface{}
 
-func TestUnmarshalGraphQL_customScalar(t *testing.T) {
+func (s *upcaseScalar) UnmarshalJSON(data []byte) error {
+	err := json.Unmarshal(data, (*string)(s))
+	*s = (upcaseScalar)(strings.ToUpper(string(*s)))
+	return err
+}
+
+func (f *fieldScalar) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &f.X)
+}
+
+func (obj *jsonObject) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, (*map[string]interface{})(obj))
+}
+
+func (arr *jsonArray) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, (*[]interface{})(arr))
+}
+
+func TestUnmarshalGraphQL_customScalars(t *testing.T) {
 	type query struct {
-		Foo jsonObject
+		Str   upcaseScalar
+		Field fieldScalar
+		Obj   jsonObject
+		Arr   jsonArray
+		Slice []upcaseScalar
 	}
 	var got query
-	err := jsonutil.UnmarshalGraphQL([]byte(`{"foo": {"bar": "baz"}}`), &got)
+	err := jsonutil.UnmarshalGraphQL([]byte(`{
+		"str": "string",
+		"field": "value",
+		"obj": {"foo": "bar"},
+		"arr": ["abc", 123],
+		"slice": ["elem"]
+	}`), &got)
 	if err != nil {
 		t.Fatal(err)
 	}
 	want := query{
-		Foo: map[string]interface{}{
-			"bar": "baz",
+		Str: "STRING",
+		Field: fieldScalar{
+			X: "value",
 		},
+		Obj: map[string]interface{}{
+			"foo": "bar",
+		},
+		Arr:   []interface{}{"abc", 123},
+		Slice: []upcaseScalar{"ELEM"},
 	}
-	if !reflect.DeepEqual(got, want) {
+	if fmt.Sprintf("%#v", got) != fmt.Sprintf("%#v", want) {
 		t.Error("not equal")
 	}
 }

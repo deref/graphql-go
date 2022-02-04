@@ -20,7 +20,11 @@ import (
 func UnmarshalGraphQL(data []byte, v interface{}) error {
 	dec := json.NewDecoder(bytes.NewReader(data))
 	dec.UseNumber()
-	err := (&decoder{tokenizer: dec}).Decode(v)
+	err := (&decoder{
+		data:      data,
+		tokenizer: dec,
+		inScalar:  []bool{false},
+	}).Decode(v)
 	if err != nil {
 		return err
 	}
@@ -40,8 +44,11 @@ func UnmarshalGraphQL(data []byte, v interface{}) error {
 // decoder is a JSON decoder that performs custom unmarshaling behavior
 // for GraphQL query data structures. It's implemented on top of a JSON tokenizer.
 type decoder struct {
+	data []byte
+
 	tokenizer interface {
 		Token() (json.Token, error)
+		InputOffset() int64
 	}
 
 	// Stack of what part of input JSON we're in the middle of - objects, arrays.
@@ -54,6 +61,9 @@ type decoder struct {
 	// a single JSON value into multiple GraphQL fragments or embedded structs, so
 	// we keep track of them all.
 	vs [][]reflect.Value
+
+	// Stack of whether or not we decoded a scalar along the current key path.
+	inScalar []bool
 }
 
 // Decode decodes a single JSON value from d.tokenizer into v.
@@ -71,6 +81,7 @@ func (d *decoder) decode() error {
 	// The loop invariant is that the top of each d.vs stack
 	// is where we try to unmarshal the next JSON value we see.
 	for len(d.vs) > 0 {
+		offset := d.tokenizer.InputOffset()
 		tok, err := d.tokenizer.Token()
 		if err == io.EOF {
 			return errors.New("unexpected end of JSON input")
@@ -87,6 +98,7 @@ func (d *decoder) decode() error {
 				return errors.New("unexpected non-key in JSON input")
 			}
 			someFieldExist := false
+			var scalars []reflect.Value
 			for i := range d.vs {
 				v := d.vs[i][len(d.vs[i])-1]
 				if v.Kind() == reflect.Ptr {
@@ -99,13 +111,37 @@ func (d *decoder) decode() error {
 						someFieldExist = true
 					}
 				}
-				d.vs[i] = append(d.vs[i], f)
+				if isScalar(f) {
+					scalars = append(scalars, f)
+					d.vs[i] = append(d.vs[i], reflect.Value{})
+				} else {
+					d.vs[i] = append(d.vs[i], f)
+				}
 			}
-			if !someFieldExist {
+			inScalar := len(scalars) > 0 || d.inScalar[len(d.inScalar)-1]
+			d.inScalar = append(d.inScalar, inScalar)
+			if !someFieldExist && !inScalar {
 				return fmt.Errorf("struct field for %q doesn't exist in any of %v places to unmarshal", key, len(d.vs))
 			}
 
 			// We've just consumed the current token, which was the key.
+			// Compute an offset that skips the expected colon.
+			offset = d.tokenizer.InputOffset()
+			colonIndex := bytes.IndexRune(d.data[offset:], ':')
+			if colonIndex == -1 {
+				return errors.New("expected colon")
+			}
+			offset += int64(colonIndex) + 1
+
+			// Unmarshal scalars.
+			for _, v := range scalars {
+				unmarshaler := v.Addr().Interface().(json.Unmarshaler)
+				subdec := json.NewDecoder(bytes.NewReader(d.data[offset:]))
+				if err := subdec.Decode(unmarshaler); err != nil {
+					return fmt.Errorf("unmarshalling %T: %w", unmarshaler, err)
+				}
+			}
+
 			// Read the next token, which should be the value, and let the rest of code process it.
 			tok, err = d.tokenizer.Token()
 			if err == io.EOF {
@@ -130,7 +166,9 @@ func (d *decoder) decode() error {
 				}
 				d.vs[i] = append(d.vs[i], f)
 			}
-			if !someSliceExist {
+			inScalar := d.inScalar[len(d.inScalar)-1]
+			d.inScalar = append(d.inScalar, inScalar)
+			if !someSliceExist && !inScalar {
 				return fmt.Errorf("slice doesn't exist in any of %v places to unmarshal", len(d.vs))
 			}
 		}
@@ -250,6 +288,7 @@ func (d *decoder) popAllVs() {
 		}
 	}
 	d.vs = nonEmpty
+	d.inScalar = d.inScalar[:len(d.inScalar)-1]
 }
 
 // fieldByGraphQLName returns an exported struct field of struct v
@@ -309,3 +348,9 @@ func unmarshalValue(value json.Token, v reflect.Value) error {
 	}
 	return json.Unmarshal(b, v.Addr().Interface())
 }
+
+func isScalar(v reflect.Value) bool {
+	return v.IsValid() && reflect.PtrTo(v.Type()).Implements(jsonUnmarshaler)
+}
+
+var jsonUnmarshaler = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
