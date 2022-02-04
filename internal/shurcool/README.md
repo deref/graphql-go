@@ -12,12 +12,14 @@ the the reflective encoding stuff is _mostly_ unchanged. See the
 [github.com/deref/graphql-go/encoding](https://github.com/deref/graphql-go/tree/main/encoding)
 package for the public interface.
 
-One critical change is that wrapper types are no longer required for
-representing GraphQL's `String`, `Boolean`, `Float`, and `Int` types. You can
-use corresponding Go types directly, provided they can represent the same range
-of values. That is, any integer type that fits in a 64-bit float can be used.
-The machine-specific `int` type may be truncated. Similar goes for floating
-point values.
+One critical change is improved scalar support. In particular, custom wrapper
+types are no longer required for representing GraphQL's `String`, `Boolean`,
+`Float`, and `Int` types. You can use corresponding Go types directly, provided
+they can represent the same range of values. That is, any integer type that
+fits in a 64-bit float can be used.  The machine-specific `int` type may be
+truncated. Similar goes for floating point values. Other custom scalar types
+support both encoding and decoding by implementing Go's standard json.Marshaler
+and json.Unmarshaler interfaces.
 
 ### Simple Query
 

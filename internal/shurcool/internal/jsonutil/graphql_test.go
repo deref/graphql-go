@@ -326,6 +326,27 @@ func TestUnmarshalGraphQL_union(t *testing.T) {
 	}
 }
 
+type jsonObject map[string]interface{}
+
+func TestUnmarshalGraphQL_customScalar(t *testing.T) {
+	type query struct {
+		Foo jsonObject
+	}
+	var got query
+	err := jsonutil.UnmarshalGraphQL([]byte(`{"foo": {"bar": "baz"}}`), &got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := query{
+		Foo: map[string]interface{}{
+			"bar": "baz",
+		},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Error("not equal")
+	}
+}
+
 // Issue https://github.com/shurcooL/githubv4/issues/18.
 func TestUnmarshalGraphQL_arrayInsideInlineFragment(t *testing.T) {
 	/*
